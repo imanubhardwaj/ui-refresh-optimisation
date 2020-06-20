@@ -1,20 +1,28 @@
 let interval;
-const tbody = document.querySelector('tbody');
-populateData(data);
+const tbody = document.querySelector("tbody");
+upsertData(data);
 
-function populateData(data) {
+function upsertData(data) {
+  const fragment = new DocumentFragment();
   data.forEach(item => {
-    const newRow = tbody.insertRow();
-
-    swapRowData(item, newRow);
+      const row = document.createElement("tr");
+      Object.keys(item).forEach(key => {
+          const dataEl = document.createElement("td");
+          const text = document.createTextNode(item[key]);
+          dataEl.appendChild(text);
+          row.appendChild(dataEl);
+      });
+      fragment.appendChild(row);
   });
+  tbody.innerHTML = "";
+  tbody.appendChild(fragment);
 }
 
 function start() {
   interval = setInterval(() => {
     const newData = JSON.parse(JSON.stringify(data));
     newData.sort(() => Math.random() - 0.5);
-    replaceRows(newData, getChangedIndices(data, newData));
+    upsertData(newData);
     data = newData;
   }, 1000);
 }
@@ -34,37 +42,6 @@ function sort() {
       return item1.id - item2.id;
     }
   });
-  replaceRows(newData, newData.map((item, index) => index));
+  upsertData(newData);
   data = newData;
-}
-
-function getChangedIndices(arr1, arr2) {
-  const indices = [];
-  arr2.forEach((item, index) => {
-    if (arr1[index].id !== item.id) {
-      indices.push(index);
-    }
-  });
-  return indices;
-}
-
-function replaceRows(data, indices) {
-  indices.forEach(index => {
-    const row = tbody.rows[index];
-    swapRowData(data[index], row);
-  });
-}
-
-function swapRowData(item, row) {
-  Object.keys(item).forEach((key, index) => {
-    let cell = row.cells[index];
-    if (cell) {
-      cell.innerHTML = item[key];
-    } else {
-      const newCell = row.insertCell();
-
-      const newText = document.createTextNode(item[key]);
-      newCell.appendChild(newText);
-    }
-  });
 }
